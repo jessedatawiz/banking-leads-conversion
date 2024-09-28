@@ -4,7 +4,7 @@ from google.cloud import storage
 from google.api_core.exceptions import Conflict
 
 
-class GCPStorage:
+class DataLoader:
     def __init__(self, project_id):
         self.client = storage.Client(project=project_id)
         
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     destination_blob_prefix = config['gcp']['destination_blob_name']
     
     # Initialize GCP storage facade
-    gcp_storage = GCPStorage(project_id)
+    gcp_storage = DataLoader(project_id)
 
     # Create a bucket (commented out for now)
     gcp_storage.create_bucket(bucket_name)
