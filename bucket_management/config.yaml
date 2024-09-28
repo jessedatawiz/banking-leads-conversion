@@ -1,0 +1,5 @@
+gcp:
+  project_id: "zinc-window-437019-t0"
+  bucket_name: "lead_conversion_data"
+  source_file_name: "/workspaces/banking-leads-conversion/data"
+  destination_blob_name: "data"
