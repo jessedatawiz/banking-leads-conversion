@@ -1,17 +1,26 @@
 import os
 import yaml
 from google.cloud import storage
+from google.api_core.exceptions import Conflict
+
 
 class GCPStorage:
     def __init__(self, project_id):
         self.client = storage.Client(project=project_id)
         
     def create_bucket(self, bucket_name):
-        """Creates a new bucket in GCP."""
+        """Creates a new bucket in GCP if it doesn't exist."""
         try:
-            bucket = self.client.create_bucket(bucket_name)
-            print(f"Bucket {bucket.name} created.")
+            # Check if the bucket already exists
+            bucket = self.client.lookup_bucket(bucket_name)
+            if bucket:
+                print(f"Bucket {bucket_name} already exists.")
+            else:
+                bucket = self.client.create_bucket(bucket_name)
+                print(f"Bucket {bucket.name} created.")
             return bucket
+        except Conflict as e:
+            print(f"Error: Bucket {bucket_name} already exists. {e}")
         except Exception as e:
             print(f"Error creating bucket: {e}")
             return None
@@ -21,8 +30,13 @@ class GCPStorage:
         try:
             bucket = self.client.bucket(bucket_name)
             blob = bucket.blob(destination_blob_name)
-            blob.upload_from_filename(source_file_path)
-            print(f"File {source_file_path} uploaded to {destination_blob_name}.")
+            # Check if the blob already exists
+            if blob.exists():
+                print(f"Blob {destination_blob_name} already exists in bucket {bucket_name}.")
+            else:
+                blob.upload_from_filename(source_file_path)
+                print(f"File {source_file_path} uploaded to {destination_blob_name}.")
+    
         except Exception as e:
             print(f"Error uploading file: {e}")
 
@@ -54,7 +68,7 @@ if __name__ == "__main__":
     gcp_storage = GCPStorage(project_id)
 
     # Create a bucket (commented out for now)
-    #gcp_storage.create_bucket(bucket_name)
+    gcp_storage.create_bucket(bucket_name)
 
     # Upload files from the directory
     upload_directory(gcp_storage, bucket_name, source_directory, destination_blob_prefix)
